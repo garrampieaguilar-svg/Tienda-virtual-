@@ -213,6 +213,8 @@ declare
   v_slot_label    text;
   v_needs_slot    boolean;
 
+  v_ids           uuid[];
+  v_qtys          numeric(10,3)[];
   v_item          record;
   v_subtotal      numeric(12,2) := 0;
   v_shipping      numeric(12,2) := 0;
@@ -265,14 +267,16 @@ begin
     raise exception 'El pedido tiene demasiados productos distintos.';
   end if;
 
-  -- Tabla temporal con el carrito ya agrupado (por si un producto viene repetido).
+  -- Carrito ya agrupado (por si un producto viene repetido), en dos listas paralelas.
   begin
-    drop table if exists pg_temp._cart;
-    create temporary table _cart on commit drop as
+    select array_agg(t.product_id), array_agg(t.quantity)
+    into v_ids, v_qtys
+    from (
       select (i ->> 'product_id')::uuid as product_id,
              sum((i ->> 'quantity')::numeric)::numeric(10,3) as quantity
       from jsonb_array_elements(p_items) as i
-      group by 1;
+      group by 1
+    ) t;
   exception when others then
     raise exception 'Hay productos del carrito que no son válidos. Vaciá el carrito y probá de nuevo.';
   end;
@@ -281,13 +285,13 @@ begin
   -- si dos personas compran la última unidad a la vez, solo una lo logra.
   perform 1
   from public.products p
-  where p.id in (select product_id from _cart)
+  where p.id = any (v_ids)
   order by p.id
   for update;
 
   for v_item in
     select c.quantity, p.id, p.name, p.active, p.price, p.stock, p.quantity_step
-    from _cart c
+    from unnest(v_ids, v_qtys) as c(product_id, quantity)
     left join public.products p on p.id = c.product_id
   loop
     if v_item.id is null or not v_item.active then
@@ -412,18 +416,16 @@ begin
   )
   select v_order_id, p.id, p.name, p.brand, p.sku, p.barcode,
          p.sale_unit, p.price, c.quantity, round(p.price * c.quantity, 2)
-  from _cart c
+  from unnest(v_ids, v_qtys) as c(product_id, quantity)
   join public.products p on p.id = c.product_id
   order by p.name;
 
   if v_settings.track_stock then
     update public.products p
     set stock = p.stock - c.quantity
-    from _cart c
+    from unnest(v_ids, v_qtys) as c(product_id, quantity)
     where p.id = c.product_id;
   end if;
-
-  drop table _cart;
 
   return jsonb_build_object('id', v_order_id, 'order_number', v_order_number);
 end;

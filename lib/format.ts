@@ -2,6 +2,8 @@
  * Formatos de precios y unidades, en pesos argentinos.
  */
 
+import type { ContentUnit, SaleUnit } from "@/types/database";
+
 const formatoPesos = new Intl.NumberFormat("es-AR", {
   style: "currency",
   currency: "ARS",
@@ -14,11 +16,8 @@ export function formatPrecio(valor: number): string {
   return formatoPesos.format(valor);
 }
 
-/** Unidades de venta posibles (igual que en la base de datos). */
-export type UnidadVenta = "unidad" | "kilo" | "litro" | "pack";
-
-/** Unidad de medida del contenido neto. */
-export type UnidadContenido = "g" | "kg" | "ml" | "l" | "un";
+export type UnidadVenta = SaleUnit;
+export type UnidadContenido = ContentUnit;
 
 /**
  * Calcula el precio por kilo o por litro a partir del contenido neto.
@@ -69,4 +68,18 @@ export function formatContenido(
 export function porcentajeDescuento(anterior: number, actual: number): number {
   if (!anterior || anterior <= actual) return 0;
   return Math.round(((anterior - actual) / anterior) * 100);
+}
+
+/**
+ * Cantidad lista para mostrar según cómo se vende el producto:
+ * (2, "unidad") → "2" · (0.5, "kilo") → "500 g" · (1.25, "kilo") → "1,25 kg" · (2, "litro") → "2 l"
+ */
+export function formatCantidad(cantidad: number, unidadVenta: SaleUnit): string {
+  const numero = (n: number) =>
+    new Intl.NumberFormat("es-AR", { maximumFractionDigits: 3 }).format(n);
+  if (unidadVenta === "kilo") {
+    return cantidad < 1 ? `${numero(cantidad * 1000)} g` : `${numero(cantidad)} kg`;
+  }
+  if (unidadVenta === "litro") return `${numero(cantidad)} l`;
+  return numero(cantidad);
 }
