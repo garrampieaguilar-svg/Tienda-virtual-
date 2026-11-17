@@ -4,8 +4,8 @@ import type { Database } from "@/types/database";
 
 /**
  * Refresca la sesión de Supabase en cada request y la deja disponible
- * en las cookies. Devuelve también el usuario, para que el middleware
- * principal pueda proteger rutas como /admin.
+ * en las cookies. Si Supabase no responde, la request sigue igual: cada página
+ * vuelve a verificar la sesión por su cuenta.
  */
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -33,9 +33,14 @@ export async function updateSession(request: NextRequest) {
   });
 
   // Importante: getUser() valida el token contra Supabase (no confiar en getSession()).
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user = null;
+  try {
+    ({
+      data: { user },
+    } = await supabase.auth.getUser());
+  } catch {
+    // Sin conexión con Supabase: no se refresca la sesión en esta request.
+  }
 
   return { response, user, supabase };
 }

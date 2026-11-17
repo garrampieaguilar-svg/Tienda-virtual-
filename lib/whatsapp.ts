@@ -70,3 +70,26 @@ export function linkWhatsapp(telefono: string | null, mensaje: string): string |
   if (!numero) return null;
   return `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
 }
+
+/** Mensaje para avisarle a quien compró que su pedido cambió de estado. */
+export function mensajeEstado(
+  pedido: Pick<OrderWithItems, "order_number" | "customer_name" | "status" | "total" | "delivery_mode">,
+  nombreComercio: string,
+  direccionComercio: string | null,
+  linkPedido: string,
+): string {
+  const nombre = pedido.customer_name.split(" ")[0];
+  const numero = `#${pedido.order_number}`;
+  const total = formatPrecio(Number(pedido.total));
+  const textos: Record<OrderWithItems["status"], string> = {
+    new: `Hola ${nombre}, te escribimos de ${nombreComercio}. Recibimos tu pedido ${numero} por ${total}.`,
+    preparing: `Hola ${nombre}, ya estamos preparando tu pedido ${numero} de ${nombreComercio}.`,
+    ready_for_pickup: `Hola ${nombre}, tu pedido ${numero} ya está listo para retirar${
+      direccionComercio ? ` en ${direccionComercio}` : ""
+    }. Total: ${total}.`,
+    out_for_delivery: `Hola ${nombre}, tu pedido ${numero} de ${nombreComercio} ya salió y está en camino.`,
+    delivered: `Hola ${nombre}, ¡gracias por tu compra en ${nombreComercio}! Tu pedido ${numero} figura como entregado.`,
+    cancelled: `Hola ${nombre}, te escribimos de ${nombreComercio}: tu pedido ${numero} fue cancelado. Cualquier duda, respondé este mensaje.`,
+  };
+  return `${textos[pedido.status]}\n\nVer el pedido: ${linkPedido}`;
+}

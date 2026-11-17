@@ -159,3 +159,38 @@ export function telefonoValido(telefono: string): boolean {
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const esUuid = (texto: string) => UUID.test(texto);
+
+/**
+ * Teléfono en el formato que pide WhatsApp (wa.me), pensado para números de Argentina.
+ * "11 2345-6789" · "011 15 2345 6789" · "+54 9 11 2345 6789" → "5491123456789".
+ * Si no parece un número argentino, lo deja con sus dígitos tal cual.
+ */
+export function telefonoParaWhatsapp(telefono: string): string | null {
+  const original = soloDigitos(telefono);
+  let d = original;
+  if (d.startsWith("00")) d = d.slice(2);
+  if (d.startsWith("54")) {
+    d = d.slice(2);
+    if (d.startsWith("9")) d = d.slice(1);
+  }
+  if (d.startsWith("0")) d = d.slice(1);
+  // Formato local con el 15 después del código de área (de 2 a 4 dígitos).
+  if (d.length === 12) {
+    for (const largo of [2, 3, 4]) {
+      if (d.slice(largo, largo + 2) === "15") {
+        d = d.slice(0, largo) + d.slice(largo + 2);
+        break;
+      }
+    }
+  }
+  if (d.length === 10) return `549${d}`;
+  return original.length >= 8 ? original : null;
+}
+
+/** Estados a los que se puede pasar un pedido desde el panel, en el orden habitual. */
+export function siguientesEstados(estado: OrderStatus, modo: DeliveryMode): OrderStatus[] {
+  if (estado === "cancelled" || estado === "delivered") return [];
+  const listo: OrderStatus = modo === "pickup" ? "ready_for_pickup" : "out_for_delivery";
+  const camino: OrderStatus[] = ["new", "preparing", listo, "delivered"];
+  return camino.slice(camino.indexOf(estado) + 1);
+}

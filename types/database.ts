@@ -183,6 +183,45 @@ export type CreateOrderInput = {
 
 export type CreateOrderItem = { product_id: string; quantity: number };
 
+/** Lo que devuelve admin_users(): perfil + email (solo para el administrador). */
+export type AdminUser = {
+  id: string;
+  email: string;
+  full_name: string | null;
+  phone: string | null;
+  role: UserRole;
+  created_at: string;
+  last_sign_in_at: string | null;
+};
+
+/** Una fila del archivo de importación, ya normalizada. Solo viajan las columnas que trae el archivo. */
+export type ImportRow = {
+  row: number;
+  sku?: string;
+  barcode?: string;
+  name?: string;
+  brand?: string;
+  description?: string;
+  category?: string;
+  subcategory?: string;
+  price?: number;
+  previous_price?: number | null;
+  on_sale?: boolean;
+  stock?: number;
+  sale_unit?: SaleUnit;
+  quantity_step?: number;
+  net_content?: number | null;
+  net_content_unit?: ContentUnit | null;
+  active?: boolean;
+};
+
+export type ImportResult = {
+  created: number;
+  updated: number;
+  skipped: number;
+  errors: { row: number; error: string }[];
+};
+
 export type Database = {
   public: {
     Tables: {
@@ -241,6 +280,9 @@ export type Database = {
         Returns: OrderWithItems | null;
       };
       is_staff: { Args: Record<string, never>; Returns: boolean };
+      admin_users: { Args: Record<string, never>; Returns: AdminUser[] };
+      set_order_status: { Args: { p_order_id: string; p_status: OrderStatus }; Returns: undefined };
+      import_products: { Args: { p_rows: ImportRow[]; p_create?: boolean }; Returns: ImportResult };
       is_admin: { Args: Record<string, never>; Returns: boolean };
     };
     Enums: {
