@@ -3,6 +3,12 @@
 -- Roles, alta automática de perfiles, buscador y creación de pedidos.
 -- =====================================================================
 
+-- Carga pg_trgm en esta sesión. Sin esto, Supabase rechaza el
+-- "set pg_trgm.word_similarity_threshold" de search_products() con
+-- "permission denied to set parameter": el parámetro recién existe cuando
+-- la extensión está cargada, y solo un superusuario puede fijarlo antes.
+select extensions.show_limit();
+
 -- ---------------------------------------------------------------------
 -- Roles
 -- SECURITY DEFINER: leen profiles salteando RLS (si no, las políticas que
