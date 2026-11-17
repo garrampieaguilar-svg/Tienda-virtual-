@@ -60,3 +60,31 @@ export const IconoFlecha = (p: SVGProps<SVGSVGElement>) => (
     <path d="m9 6 6 6-6 6" />
   </Base>
 );
+
+export const IconoBasura = (p: SVGProps<SVGSVGElement>) => (
+  <Base {...p}>
+    <path d="M4 7h16M10 11v6M14 11v6" />
+    <path d="M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+  </Base>
+);
+
+export const IconoCheck = (p: SVGProps<SVGSVGElement>) => (
+  <Base {...p}>
+    <path d="m5 12.5 4.5 4.5L19 7.5" />
+  </Base>
+);
+
+export const IconoCopiar = (p: SVGProps<SVGSVGElement>) => (
+  <Base {...p}>
+    <rect x="9" y="9" width="11" height="11" rx="2" />
+    <path d="M5 15V6a2 2 0 0 1 2-2h9" />
+  </Base>
+);
+
+/** Globo de chat, para los botones de WhatsApp. */
+export const IconoWhatsapp = (p: SVGProps<SVGSVGElement>) => (
+  <Base {...p}>
+    <path d="M4 20l1.3-3.9A8 8 0 1 1 8.1 19z" />
+    <path d="M9 10.5c.3 1.7 1.800 3.200 3.500 3.500" />
+  </Base>
+);

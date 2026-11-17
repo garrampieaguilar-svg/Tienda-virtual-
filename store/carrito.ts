@@ -24,6 +24,11 @@ type EstadoCarrito = {
   restar: (id: string) => void;
   quitar: (id: string) => void;
   vaciar: () => void;
+  /**
+   * Reemplaza los datos guardados de cada producto por los actuales de la base
+   * (precio, stock, nombre). Las cantidades no se tocan.
+   */
+  actualizarProductos: (productos: ProductoTarjeta[]) => void;
 };
 
 /** Evita errores de decimales (0.1 + 0.2) al sumar pasos como 0,25. */
@@ -63,6 +68,15 @@ export const useCarrito = create<EstadoCarrito>()(
           return { items };
         }),
       vaciar: () => set({ items: {} }),
+      actualizarProductos: (productos) =>
+        set((estado) => {
+          const items = { ...estado.items };
+          for (const producto of productos) {
+            const item = items[producto.id];
+            if (item) items[producto.id] = { ...item, producto };
+          }
+          return { items };
+        }),
     }),
     { name: "carrito-v1" },
   ),

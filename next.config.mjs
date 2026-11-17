@@ -8,6 +8,11 @@ const supabaseHost = process.env.NEXT_PUBLIC_SUPABASE_URL
 
 const nextConfig = {
   reactStrictMode: true,
+  experimental: {
+    // El checkout manda el comprobante de transferencia (hasta 10 MB) en una Server Action;
+    // el límite por defecto es 1 MB.
+    serverActions: { bodySizeLimit: "12mb" },
+  },
   images: {
     remotePatterns: [
       {

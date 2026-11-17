@@ -12,6 +12,18 @@ cp .env.example .env.local   # completá las claves de Supabase
 npm run dev                  # http://localhost:3000
 ```
 
+## Cómo se hace un pedido
+
+1. **Carrito** (`/carrito`): vive en el navegador, sin registrarse. Al entrar se vuelven a pedir los precios actuales.
+2. **Checkout** (`/checkout`): datos de contacto, retiro o envío, día y horario, y forma de pago.
+   El navegador manda solo productos y cantidades; los precios, el envío y el total los calcula la base (`create_order`).
+3. **Confirmación** (`/pedido/<id>`): número de pedido, botón para avisar por WhatsApp con el mensaje ya escrito,
+   datos para transferir y subida del comprobante. El `id` es un código aleatorio que funciona como link secreto.
+
+> Para que se puedan subir comprobantes hace falta `SUPABASE_SERVICE_ROLE_KEY` en `.env.local`
+> (Supabase → Project Settings → API Keys). Sin esa clave el pedido se crea igual y se le pide
+> a quien compra que mande el comprobante por WhatsApp.
+
 ## Scripts
 
 | Comando             | Qué hace                         |
