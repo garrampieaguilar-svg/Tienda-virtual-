@@ -70,7 +70,10 @@ export function FormularioCheckout({
   zonas,
   franjas,
   ahora,
+  cuenta,
 }: {
+  /** Datos de la cuenta, si quien compra tiene sesión abierta. */
+  cuenta: Required<DatosGuardados> | null;
   settings: Settings;
   zonas: DeliveryZone[];
   franjas: TimeSlot[];
@@ -84,12 +87,12 @@ export function FormularioCheckout({
   const subtotal = useCarrito(calcularSubtotal);
   const vaciar = useCarrito((e) => e.vaciar);
 
-  const [nombre, setNombre] = useState("");
-  const [telefono, setTelefono] = useState("");
-  const [email, setEmail] = useState("");
+  const [nombre, setNombre] = useState(cuenta?.nombre ?? "");
+  const [telefono, setTelefono] = useState(cuenta?.telefono ?? "");
+  const [email, setEmail] = useState(cuenta?.email ?? "");
   const [modo, setModo] = useState<DeliveryMode>(settings.pickup_enabled ? "pickup" : "delivery");
-  const [direccion, setDireccion] = useState("");
-  const [referencias, setReferencias] = useState("");
+  const [direccion, setDireccion] = useState(cuenta?.direccion ?? "");
+  const [referencias, setReferencias] = useState(cuenta?.referencias ?? "");
   const [zonaId, setZonaId] = useState("");
   const [fechaElegida, setFechaElegida] = useState("");
   const [franjaElegida, setFranjaElegida] = useState("");
@@ -105,15 +108,16 @@ export function FormularioCheckout({
   /** El pedido ya se creó y estamos yendo a la confirmación (el carrito ya está vacío). */
   const [enviado, setEnviado] = useState(false);
 
-  // Completar con los datos de la compra anterior, si los hay.
+  // Completar lo que falte con los datos de la compra anterior, si los hay.
+  // (Lo que viene de la cuenta tiene prioridad.)
   useEffect(() => {
     try {
       const guardados = JSON.parse(localStorage.getItem(CLAVE_DATOS) ?? "{}") as DatosGuardados;
-      if (guardados.nombre) setNombre(guardados.nombre);
-      if (guardados.telefono) setTelefono(guardados.telefono);
-      if (guardados.email) setEmail(guardados.email);
-      if (guardados.direccion) setDireccion(guardados.direccion);
-      if (guardados.referencias) setReferencias(guardados.referencias);
+      if (guardados.nombre) setNombre((actual) => actual || guardados.nombre!);
+      if (guardados.telefono) setTelefono((actual) => actual || guardados.telefono!);
+      if (guardados.email) setEmail((actual) => actual || guardados.email!);
+      if (guardados.direccion) setDireccion((actual) => actual || guardados.direccion!);
+      if (guardados.referencias) setReferencias((actual) => actual || guardados.referencias!);
     } catch {
       // localStorage bloqueado o con datos rotos: se arranca con el formulario vacío.
     }
@@ -305,6 +309,15 @@ export function FormularioCheckout({
           ‹ Volver al carrito
         </Link>
         <h1 className="mt-2 text-xl font-semibold tracking-tight">Finalizar compra</h1>
+        {!cuenta && (
+          <p className="mt-1 text-sm text-neutral-600">
+            ¿Ya tenés cuenta?{" "}
+            <Link href="/ingresar?next=/checkout" className="rounded text-accent underline underline-offset-2">
+              Ingresá
+            </Link>{" "}
+            para completar tus datos. No es obligatorio.
+          </p>
+        )}
       </div>
 
       <div className="grid gap-8 lg:grid-cols-[1fr_22rem] lg:items-start">

@@ -1,10 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { BotonCarrito } from "./boton-carrito";
+import { BotonCuenta } from "./boton-cuenta";
 import { Buscador } from "./buscador";
 
 /**
- * Barra superior fija: logo, buscador y carrito.
+ * Barra superior fija: logo, buscador, cuenta y carrito.
  * En celular el buscador baja a una segunda fila para tener todo el ancho.
  */
 export function Header({ nombre, logoUrl }: { nombre: string; logoUrl: string | null }) {
@@ -24,6 +25,7 @@ export function Header({ nombre, logoUrl }: { nombre: string; logoUrl: string | 
         </div>
 
         <div className="order-2 ml-auto flex items-center sm:order-3 sm:ml-0">
+          <BotonCuenta />
           <BotonCarrito />
         </div>
       </div>

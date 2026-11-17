@@ -29,6 +29,8 @@ type EstadoCarrito = {
    * (precio, stock, nombre). Las cantidades no se tocan.
    */
   actualizarProductos: (productos: ProductoTarjeta[]) => void;
+  /** Suma varios productos de una vez, cada uno con su cantidad ("Repetir pedido"). */
+  agregarVarios: (nuevos: ItemCarrito[]) => void;
 };
 
 /** Evita errores de decimales (0.1 + 0.2) al sumar pasos como 0,25. */
@@ -68,6 +70,16 @@ export const useCarrito = create<EstadoCarrito>()(
           return { items };
         }),
       vaciar: () => set({ items: {} }),
+      agregarVarios: (nuevos) =>
+        set((estado) => {
+          const items = { ...estado.items };
+          for (const { producto, cantidad } of nuevos) {
+            if (cantidad <= 0) continue;
+            const actual = items[producto.id]?.cantidad ?? 0;
+            items[producto.id] = { producto, cantidad: redondear(actual + cantidad) };
+          }
+          return { items };
+        }),
       actualizarProductos: (productos) =>
         set((estado) => {
           const items = { ...estado.items };

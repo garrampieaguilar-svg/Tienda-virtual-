@@ -88,3 +88,10 @@ export const IconoWhatsapp = (p: SVGProps<SVGSVGElement>) => (
     <path d="M9 10.5c.3 1.7 1.800 3.200 3.500 3.500" />
   </Base>
 );
+
+export const IconoUsuario = (p: SVGProps<SVGSVGElement>) => (
+  <Base {...p}>
+    <circle cx="12" cy="8" r="4" />
+    <path d="M4.5 20.5a7.5 7.5 0 0 1 15 0" />
+  </Base>
+);

@@ -5,6 +5,10 @@ import { updateSession } from "@/lib/supabase/middleware";
  * Middleware global:
  * 1. Mantiene viva la sesión de Supabase.
  * 2. Protege /admin: sin sesión, redirige al login del panel.
+ *
+ * /cuenta no se protege acá sino en su propia página, que es la misma que
+ * decide en /ingresar si ya hay sesión: así las dos siempre coinciden y no
+ * puede armarse un ida y vuelta entre ambas.
  *    (La verificación del ROL —admin o empleado— se hace en el layout del
  *    panel y, sobre todo, en la base de datos con RLS.)
  */

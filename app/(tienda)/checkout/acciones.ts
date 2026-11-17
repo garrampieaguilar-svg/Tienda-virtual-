@@ -51,7 +51,8 @@ export async function crearPedido(formData: FormData): Promise<ResultadoPedido> 
   if (!pedido || !Array.isArray(items)) return { ok: false, error: ERROR_GENERICO };
 
   // Con el cliente de servidor: si quien compra tiene sesión, el pedido queda a su nombre.
-  const { data, error } = await createClient().rpc("create_order", {
+  const sb = createClient();
+  const { data, error } = await sb.rpc("create_order", {
     p_order: pedido,
     p_items: items,
   });
@@ -63,6 +64,8 @@ export async function crearPedido(formData: FormData): Promise<ResultadoPedido> 
     return { ok: false, error: ERROR_GENERICO };
   }
 
+  await completarPerfil(sb, pedido);
+
   const archivo = leerArchivo(formData.get("comprobante"));
   if (archivo && pedido.payment_method === "transfer") {
     const resultado = await guardarComprobante(data.id, archivo);
@@ -70,6 +73,33 @@ export async function crearPedido(formData: FormData): Promise<ResultadoPedido> 
   }
 
   return { ok: true, id: data.id };
+}
+
+/**
+ * Si quien compró tiene cuenta, guarda en su perfil los datos que todavía no
+ * tenía cargados (no pisa nada). Si falla no importa: el pedido ya está hecho.
+ */
+async function completarPerfil(sb: ReturnType<typeof createClient>, pedido: CreateOrderInput) {
+  try {
+    const {
+      data: { user },
+    } = await sb.auth.getUser();
+    if (!user) return;
+    const { data: perfil } = await sb.from("profiles").select("*").eq("id", user.id).maybeSingle();
+    if (!perfil) return;
+
+    const cambios = {
+      ...(!perfil.full_name && { full_name: pedido.customer_name }),
+      ...(!perfil.phone && { phone: pedido.customer_phone }),
+      ...(!perfil.address && pedido.address && { address: pedido.address }),
+      ...(!perfil.address_notes && pedido.address_notes && { address_notes: pedido.address_notes }),
+    };
+    if (Object.keys(cambios).length > 0) {
+      await sb.from("profiles").update(cambios).eq("id", user.id);
+    }
+  } catch (e) {
+    console.error("No se pudo completar el perfil:", e);
+  }
 }
 
 /** Sube (o reemplaza) el comprobante de un pedido ya hecho, desde la pantalla de confirmación. */

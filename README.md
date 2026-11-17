@@ -24,6 +24,32 @@ npm run dev                  # http://localhost:3000
 > (Supabase → Project Settings → API Keys). Sin esa clave el pedido se crea igual y se le pide
 > a quien compra que mande el comprobante por WhatsApp.
 
+## Cuentas de cliente
+
+Tener cuenta es opcional: se puede comprar sin registrarse. Con cuenta, el checkout se completa solo
+y en `/cuenta` se ven los pedidos anteriores, con un botón para repetirlos.
+
+El ingreso (`/ingresar`) es sin contraseña: llega un mail con un link y un código. Para que funcione
+bien en producción hay que configurar tres cosas en Supabase → **Authentication**:
+
+1. **URL Configuration:** en *Site URL* poné la dirección de la tienda (por ej. `https://tu-dominio.com`)
+   y agregá `https://tu-dominio.com/**` en *Redirect URLs*.
+2. **Emails → Magic Link** (y también **Confirm signup**, que es el que llega la primera vez).
+   Reemplazá el contenido por algo así, para que el mail traiga el código y un link que funciona
+   aunque se abra en otro navegador (pasa mucho en el celular):
+
+   ```html
+   <h2>Tu ingreso a la tienda</h2>
+   <p>Tu código es: <strong>{{ .Token }}</strong></p>
+   <p>O entrá directo: <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email">Ingresar</a></p>
+   ```
+
+3. **Emails → SMTP Settings:** el correo que trae Supabase es solo para pruebas (manda muy pocos mails
+   por hora y solo a los miembros del proyecto). Para la tienda real conectá un servicio de envío propio.
+
+**Google (opcional):** activalo en *Sign In / Providers → Google* con las credenciales de Google Cloud
+y después poné `NEXT_PUBLIC_GOOGLE_LOGIN=true` para que aparezca el botón.
+
 ## Scripts
 
 | Comando             | Qué hace                         |

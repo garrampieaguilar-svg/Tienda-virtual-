@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { ImagenProducto } from "@/components/tienda/imagen-producto";
 import { SelectorCantidad } from "@/components/tienda/selector-cantidad";
 import { EstadoVacio } from "@/components/ui/estado-vacio";
@@ -33,6 +34,8 @@ export function VistaCarrito({
   const subtotal = useCarrito(calcularSubtotal);
   const quitar = useCarrito((e) => e.quitar);
   const vaciar = useCarrito((e) => e.vaciar);
+  // Viene de "Repetir pedido" cuando algunos productos ya no se venden.
+  const faltan = Number(useSearchParams().get("faltan")) || 0;
 
   if (!listo) return <CarritoCargando />;
 
@@ -74,6 +77,14 @@ export function VistaCarrito({
           Vaciar carrito
         </button>
       </div>
+
+      {faltan > 0 && (
+        <p role="status" className="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          {faltan === 1
+            ? "Un producto de ese pedido ya no está disponible y no se agregó."
+            : `${faltan} productos de ese pedido ya no están disponibles y no se agregaron.`}
+        </p>
+      )}
 
       {fallo && (
         <p role="status" className="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800">
